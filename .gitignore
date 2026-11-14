@@ -1,0 +1,24 @@
+# secrets
+.env
+
+# dependencies
+node_modules/
+
+# Hardhat build output
+artifacts/
+cache/
+cache_hardhat*/
+
+# uploaded files and macOS junk
+uploads/
+.DS_Store
+
+# other operating systems and editors
+Thumbs.db
+Desktop.ini
+.idea/
+
+# autres systèmes et éditeurs
+Thumbs.db
+Desktop.ini
+.idea/
