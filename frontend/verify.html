@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vérifier une ordonnance · Prescription Chain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="register.html">
+      <span class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
+      </span>
+      Prescription Chain
+    </a>
+    <nav class="nav">
+      <a href="register.html">Enregistrer</a>
+      <a href="verify.html" aria-current="page">Vérifier</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div>
+      <h1>Vérifier une ordonnance</h1>
+    </div>
+
+    <form class="card" id="verifyForm" novalidate>
+      <div>
+        <label class="field-label" for="prescriptionId">Identifiant de l'ordonnance</label>
+        <input class="input" id="prescriptionId" type="text" placeholder="ex. RX-2026-0001" autocomplete="off">
+      </div>
+
+      <div>
+        <label class="field-label" for="pdfFile">Fichier PDF</label>
+        <div class="dropzone">
+          <input id="pdfFile" type="file" accept="application/pdf">
+        </div>
+        <p class="hint">PDF uniquement, 5 Mo maximum.</p>
+      </div>
+
+      <button id="verifyBtn" type="submit" class="btn btn-primary">Vérifier</button>
+    </form>
+
+    <section id="result" class="result" data-state="authentic" aria-live="polite" hidden>
+      <div class="banner">
+        <span class="spinner" aria-hidden="true"></span>
+        <svg class="icon icon-ok" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>
+        <svg class="icon icon-bad" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+        <svg class="icon icon-warn" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18h.01"/></svg>
+        <svg class="icon icon-err" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <div>
+          <h2 id="resultTitle">Authentique</h2>
+          <p id="resultText">Le fichier est identique à l'ordonnance enregistrée.</p>
+        </div>
+      </div>
+      <dl class="rows">
+        <div class="row"><dt>Identifiant de l'ordonnance</dt><dd class="mono" id="outId">—</dd></div>
+        <div class="row row--onchain"><dt>Enregistrée le</dt><dd id="outDate">—</dd></div>
+        <div class="row row--onchain"><dt>Empreinte sur la blockchain</dt><dd class="mono" id="outChainHash">—</dd></div>
+        <div class="row"><dt>Empreinte du fichier envoyé</dt><dd><span class="mono" id="outFileHash">—</span><span class="badge" id="hashBadge">Identique</span></dd></div>
+        <div class="row row--onchain"><dt>Fichier original (IPFS)</dt><dd><span class="mono" id="outCid">—</span><a id="cidLink" href="#">Ouvrir</a></dd></div>
+        <div class="row row--offchain"><dt>Enregistrement blockchain</dt><dd>Aucun enregistrement trouvé. Vérifiez l'identifiant ou demandez au médecin d'enregistrer l'ordonnance.</dd></div>
+      </dl>
+    </section>
+  </main>
+</body>
+</html>
