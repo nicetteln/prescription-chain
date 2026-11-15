@@ -81,17 +81,37 @@ Node.js 22 LTS ou plus récent (requis par Hardhat 3), Git, l'extension de navig
 
 ## 7. Installation et lancement
 
-Cette section sera complétée au fur et à mesure de la construction du projet. Les étapes prévues sont : cloner le dépôt, créer le fichier `.env`, installer les dépendances, démarrer le nœud local, compiler et déployer le contrat, lancer le backend, puis servir l'interface web.
-
-Cloner le dépôt et préparer la configuration :
+Cloner le dépôt, puis installer les dépendances (racine et backend) :
 
 ```
 git clone <url-du-depot>
 cd prescription-chain
+npm install
+cd backend && npm install && cd ..
+```
+
+Créer le fichier `.env` à partir du modèle :
+
+```
 cp .env.example .env
 ```
 
-Sous Windows (invite de commandes), utiliser `copy .env.example .env` à la place de `cp`. Remplir ensuite `.env` avec ses propres valeurs.
+Sous Windows (invite de commandes), utiliser `copy .env.example .env` à la place de `cp`. Remplir ensuite `.env` :
+
+- `PINATA_JWT` : son propre jeton d'API Pinata (permission d'écriture sur les fichiers).
+- `DOCTOR_WALLET` : l'adresse de son compte MetaMask. Le déploiement autorise ce compte à enregistrer des ordonnances et lui envoie 10 ETH de test.
+
+Configurer MetaMask : ajouter un réseau personnalisé « Hardhat Local » (RPC `http://127.0.0.1:8545`, identifiant de chaîne `31337`, symbole `ETH`).
+
+Lancer l'ensemble (nœud local, déploiement du contrat, backend, interface) :
+
+```
+./start.sh
+```
+
+Puis ouvrir `http://localhost:8080/register.html` (espace médecin) ou `http://localhost:8080/verify.html` (vérification).
+
+Remarque : chaque lancement de `start.sh` crée une nouvelle blockchain locale. Il faut alors réinitialiser le compteur de transactions de MetaMask (Paramètres, Outils de développement, « Supprimer les données d'activité et de nonce »), sinon MetaMask refuse les transactions avec l'erreur « Nonce too high ».
 
 ## 8. Configuration
 
@@ -100,6 +120,7 @@ Les secrets sont stockés dans le fichier `.env`, qui n'est jamais versionné. L
 | Variable | Description |
 |---|---|
 | `PINATA_JWT` | Jeton d'API Pinata personnel de chaque développeur. |
+| `DOCTOR_WALLET` | Adresse du compte MetaMask autorisé à enregistrer des ordonnances (lue par `start.sh`). |
 | `PORT` | Port du backend. |
 | `MAX_FILE_MB` | Taille maximale d'un PDF accepté, en Mo. |
 | `RPC_URL` | Adresse du nœud Ethereum (nœud Hardhat local par défaut). |
@@ -120,29 +141,53 @@ Pour chaque ordonnance, le contrat stocke l'identifiant, l'empreinte SHA-256, le
 
 ## 11. Sécurité et limites
 
-Le contrôle d'accès du contrat limite l'enregistrement aux comptes autorisés et il est couvert par des tests. Aucun secret n'est présent dans le code : les clés Pinata restent dans `.env`. Les fichiers envoyés sont validés (type PDF et taille maximale) côté backend. L'enregistrement d'un identifiant déjà utilisé est refusé par le contrat.
+Le contrôle d'accès du contrat limite l'enregistrement aux comptes autorisés et il est couvert par des tests. Aucun secret n'est présent dans le code : les clés Pinata restent dans `.env`. Les fichiers envoyés sont validés (type PDF et taille maximale) côté backend. L'enregistrement d'un identifiant déjà utilisé est refusé par le contrat, de même que l'enregistrement d'un fichier identique sous un autre identifiant. L'interface affiche un message explicite dans les deux cas.
 
 Limite de confidentialité : IPFS est un réseau public. Toute personne connaissant le CID d'un fichier peut le télécharger. Pour des données médicales réelles, il faudrait chiffrer le PDF avant de l'envoyer sur IPFS, ou ne stocker que l'empreinte. Ce projet reste un prototype pédagogique.
 
 ## 12. Tests
 
-Les tests prévus couvrent le contrat (enregistrement, doublon refusé, compte non autorisé refusé, lecture des valeurs), le hachage (même fichier donne le même hash, un octet modifié change le hash) et les trois scénarios de vérification : fichier intact, fichier modifié d'un octet, fichier jamais enregistré. Un test de bout-en-bout est prévu sur le nœud local avec un vrai PDF.
+Lancer les tests du contrat, du hachage et des scénarios de vérification :
+
+```
+npx hardhat test
+```
+
+- Contrat : enregistrement, doublon d'identifiant refusé, même fichier sous un autre identifiant refusé, compte non autorisé refusé, lecture des valeurs, événement émis.
+- Hachage : le même fichier donne toujours le même hash, et un octet modifié change le hash.
+- Vérification, un test par scénario : fichier intact (authentique), fichier modifié d'un octet (modifié), fichier jamais enregistré (non enregistré).
+
+Test de bout-en-bout sur le nœud local, avec un vrai PDF : lancer `./start.sh`, puis dans un autre terminal :
+
+```
+node scripts/e2e.mjs
+```
+
+Le script enregistre un PDF sur la blockchain locale, puis appelle `/api/verify` avec le fichier intact, le fichier modifié d'un octet et un fichier non enregistré, et affiche PASS ou FAIL pour chacun.
 
 ## 13. Démonstration
 
-La démonstration utilise trois PDF préparés : un original, une copie falsifiée et un fichier jamais enregistré.
+Les trois PDF de démonstration sont dans le dossier `demo/` :
+
+| Fichier | Rôle | Résultat attendu |
+|---|---|---|
+| `ordonnance-originale.pdf` | Original, à enregistrer | Authentique |
+| `ordonnance-falsifiee.pdf` | Copie falsifiée (dosage changé) | Modifié |
+| `ordonnance-non-enregistree.pdf` | Fichier jamais enregistré | Non enregistré |
+
+Déroulement : sur la page d'enregistrement, enregistrer `ordonnance-originale.pdf` avec l'identifiant `RX-2026-0001`. Sur la page de vérification, saisir `RX-2026-0001` et importer successivement l'original (authentique), la copie falsifiée (modifié), puis le fichier non enregistré avec l'identifiant `RX-2026-0002` (non enregistré).
 
 ## 14. Avancement
 
 | Section | Contenu | État |
 |---|---|---|
-| A | Mise en place (dépôt, outils, `.env`) | En cours |
-| B | Contrat intelligent | À faire |
-| C | Backend | À faire |
-| D | Interface web | À faire |
-| E | Sécurité | À faire |
-| F | Tests | À faire |
-| G | Finalisation (README, démonstration) | À faire |
+| A | Mise en place (dépôt, outils, `.env`) | Terminé |
+| B | Contrat intelligent | Terminé |
+| C | Backend | Terminé |
+| D | Interface web | Terminé |
+| E | Sécurité | Terminé |
+| F | Tests | Terminé |
+| G | Finalisation (README, démonstration) | Terminé |
 
 Le projet est terminé lorsqu'un PDF peut être enregistré avec son CID et son empreinte sur la blockchain, et que la vérification renvoie le bon résultat sur les trois fichiers de démonstration.
 
