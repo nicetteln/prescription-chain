@@ -1,10 +1,10 @@
 import express from "express";
 import multer from "multer";
 import { config } from "dotenv";
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { JsonRpcProvider, Contract, Network } from "ethers";
+import { sha256Hex, decideStatus } from "./verification.js";
 
 // The .env file lives at the project root, one level above backend/.
 config({ path: fileURLToPath(new URL("../.env", import.meta.url)) });
@@ -33,11 +33,6 @@ function readPdf(req) {
     throw new AppError(400, "INVALID_FILE", "Le fichier n'est pas un PDF valide.");
   }
   return buffer;
-}
-
-// SHA-256 as a 0x-prefixed hex string, the format of the contract's bytes32.
-function sha256Hex(buffer) {
-  return "0x" + createHash("sha256").update(buffer).digest("hex");
 }
 
 // Uploads the PDF to Pinata (public IPFS network) and returns its CID.
@@ -146,10 +141,10 @@ app.post("/api/verify", upload, async (req, res, next) => {
     const fileHash = sha256Hex(file);
     const record = await readRecord(id);
 
-    if (record.timestamp === 0n) {
-      return res.json({ status: "not_registered", id, fileHash });
+    const status = decideStatus(record, fileHash);
+    if (status === "not_registered") {
+      return res.json({ status, id, fileHash });
     }
-    const status = record.hash.toLowerCase() === fileHash ? "authentic" : "modified";
     res.json({
       status,
       id,
