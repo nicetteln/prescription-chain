@@ -1,7 +1,7 @@
 import { network } from "hardhat";
 import { mkdirSync, writeFileSync } from "node:fs";
 
-const DOCTOR_WALLET = "0x39b46ff6FC67a69160181A2Fd2c1F8eAe13D4C9d";
+const DOCTOR_WALLET = process.env.DOCTOR_WALLET!;
 
 const { ethers } = await network.connect("localhost");
 const [deployer] = await ethers.getSigners();

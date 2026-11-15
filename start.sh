@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+set -a; [ -f .env ] && . ./.env; set +a
 
 trap 'kill 0' EXIT
 
