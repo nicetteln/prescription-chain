@@ -157,14 +157,6 @@ npx hardhat test
 - Hachage : le même fichier donne toujours le même hash, et un octet modifié change le hash.
 - Vérification, un test par scénario : fichier intact (authentique), fichier modifié d'un octet (modifié), fichier jamais enregistré (non enregistré).
 
-Test de bout-en-bout sur le nœud local, avec un vrai PDF : lancer `./start.sh`, puis dans un autre terminal :
-
-```
-node scripts/e2e.mjs
-```
-
-Le script enregistre un PDF sur la blockchain locale, puis appelle `/api/verify` avec le fichier intact, le fichier modifié d'un octet et un fichier non enregistré, et affiche PASS ou FAIL pour chacun.
-
 ## 13. Démonstration
 
 Les trois PDF de démonstration sont dans le dossier `demo/` :
