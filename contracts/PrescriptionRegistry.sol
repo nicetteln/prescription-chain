@@ -14,6 +14,7 @@ contract PrescriptionRegistry {
     address public owner;
     mapping(address => bool) public authorized;
     mapping(string => Prescription) private prescriptions;
+    mapping(bytes32 => bool) private hashUsed; // a given file can be registered only once
 
     event PrescriptionRegistered(
         string id,
@@ -28,6 +29,7 @@ contract PrescriptionRegistry {
     error NotAuthorized();
     error EmptyId();
     error AlreadyRegistered();
+    error HashAlreadyRegistered();
 
     constructor() {
         owner = msg.sender;
@@ -51,14 +53,17 @@ contract PrescriptionRegistry {
         emit AuthorizationChanged(account, allowed);
     }
 
-    /// @notice Register a prescription. Reverts if the ID is empty or already used.
+    /// @notice Register a prescription. Reverts if the ID is empty or already used,
+    ///         or if the same file (same hash) was already registered under another ID.
     function register(string calldata id, bytes32 hash, string calldata cid)
         external
         onlyAuthorized
     {
         if (bytes(id).length == 0) revert EmptyId();
         if (prescriptions[id].timestamp != 0) revert AlreadyRegistered();
+        if (hashUsed[hash]) revert HashAlreadyRegistered();
 
+        hashUsed[hash] = true;
         prescriptions[id] = Prescription(hash, cid, block.timestamp);
         emit PrescriptionRegistered(id, hash, cid, block.timestamp, msg.sender);
     }
@@ -75,5 +80,9 @@ contract PrescriptionRegistry {
 
     function isRegistered(string calldata id) external view returns (bool) {
         return prescriptions[id].timestamp != 0;
+    }
+
+    function isHashRegistered(bytes32 hash) external view returns (bool) {
+        return hashUsed[hash];
     }
 }

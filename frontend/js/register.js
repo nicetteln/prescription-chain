@@ -149,6 +149,17 @@ form.addEventListener("submit", async (e) => {
   submitBtn.disabled = true;
 
   try {
+    // 0. Refuse duplicates before sending anything to IPFS or MetaMask
+    const registry = new Contract(CONTRACT.address, CONTRACT.abi, signer);
+    if (await registry.isRegistered(id)) {
+      showResult("error", "Identifiant déjà utilisé", `L'identifiant « ${id} » est déjà enregistré sur la blockchain. Choisissez un autre identifiant.`);
+      return;
+    }
+    if (await registry.isHashRegistered(await computeFileSha256(file))) {
+      showResult("error", "Fichier déjà enregistré", "Ce fichier PDF exact est déjà enregistré sur la blockchain (sous un autre identifiant).");
+      return;
+    }
+
     // 1. Upload to backend -> SHA-256 + Pinata IPFS CID
     showResult("loading", "Envoi vers IPFS…", "Calcul de l'empreinte et épinglage du PDF sur IPFS.");
     const fd = new FormData();
@@ -162,7 +173,6 @@ form.addEventListener("submit", async (e) => {
 
     // 2. Register on-chain via MetaMask
     showResult("loading", "Signature MetaMask…", "Confirmez la transaction dans la fenêtre MetaMask.");
-    const registry = new Contract(CONTRACT.address, CONTRACT.abi, signer);
     const tx = await registry.register(id, data.hash, data.cid);
 
     showResult("loading", "Confirmation blockchain…", "Transaction envoyée, attente de validation du bloc.");
@@ -178,9 +188,11 @@ form.addEventListener("submit", async (e) => {
     let message = err?.shortMessage || err?.message || "Erreur inattendue.";
     if (err?.code === "ACTION_REJECTED" || err?.code === 4001) {
       message = "Transaction refusée dans MetaMask.";
-    } else if (message.includes("AlreadyRegistered")) {
+    } else if (err?.revert?.name === "HashAlreadyRegistered" || message.includes("HashAlreadyRegistered")) {
+      message = "Ce fichier PDF exact est déjà enregistré sur la blockchain (sous un autre identifiant).";
+    } else if (err?.revert?.name === "AlreadyRegistered" || message.includes("AlreadyRegistered")) {
       message = `L'identifiant « ${id} » est déjà enregistré sur la blockchain.`;
-    } else if (message.includes("NotAuthorized")) {
+    } else if (err?.revert?.name === "NotAuthorized" || message.includes("NotAuthorized")) {
       message = "Ce compte n'est pas autorisé à enregistrer des ordonnances.";
     }
     showResult("error", "Échec de l'enregistrement", message);
