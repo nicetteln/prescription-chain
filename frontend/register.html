@@ -10,45 +10,71 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="register.html">
-      <span class="brand-mark">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
-      </span>
-      Prescription Chain
-    </a>
-    <nav class="nav">
-      <a href="register.html" aria-current="page">Enregistrer</a>
-      <a href="verify.html">Vérifier</a>
-    </nav>
+    <div class="topbar-left">
+      <a class="brand" href="register.html">
+        <span class="brand-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
+        </span>
+        Prescription Chain
+      </a>
+      <nav class="nav">
+        <a href="register.html" aria-current="page">Enregistrer</a>
+        <a href="verify.html">Vérifier</a>
+      </nav>
+    </div>
+    <div class="net" id="networkTag">Réseau local Hardhat</div>
   </header>
 
   <main class="page">
     <div>
+      <div class="eyebrow">Espace médecin</div>
       <h1>Enregistrer une ordonnance</h1>
     </div>
 
-    <form class="card" id="registerForm" novalidate>
-      <div class="wallet">
-        <span class="step">1 · Portefeuille</span>
-        <button id="connectBtn" type="button" class="btn btn-secondary">Connecter MetaMask</button>
-        <span id="account" class="pill" hidden></span>
+    <div class="layout">
+      <div class="col-main">
+        <form class="card" id="registerForm" novalidate>
+          <h2>Nouvelle ordonnance</h2>
+
+          <div>
+            <div class="step"><span class="step-n">1</span>Portefeuille</div>
+            <div class="wallet">
+              <button id="connectBtn" type="button" class="btn btn-secondary">Connecter MetaMask</button>
+              <span id="account" class="pill" hidden></span>
+              <span id="authTag" class="tag" hidden>Compte autorisé</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="step" for="prescriptionId"><span class="step-n">2</span>Identifiant de l'ordonnance</label>
+            <input class="input" id="prescriptionId" type="text" placeholder="ex. RX-2026-0001" autocomplete="off">
+          </div>
+
+          <div>
+            <label class="step" for="pdfFile"><span class="step-n">3</span>Fichier PDF</label>
+            <div class="dropzone">
+              <input id="pdfFile" type="file" accept="application/pdf">
+            </div>
+            <p class="hint">PDF uniquement, 5 Mo maximum.</p>
+          </div>
+
+          <button id="submitBtn" type="submit" class="btn btn-primary" disabled>Enregistrer sur la blockchain</button>
+        </form>
       </div>
 
-      <div>
-        <label class="field-label" for="prescriptionId">2 · Identifiant de l'ordonnance</label>
-        <input class="input" id="prescriptionId" type="text" placeholder="ex. RX-2026-0001" autocomplete="off">
-      </div>
-
-      <div>
-        <label class="field-label" for="pdfFile">3 · Fichier PDF</label>
-        <div class="dropzone">
-          <input id="pdfFile" type="file" accept="application/pdf">
+      <aside class="col-aside">
+        <div class="card">
+          <h2>Récapitulatif</h2>
+          <div>
+            <div class="kv"><div class="kv-label">Identifiant</div><div class="mono" id="sumId">—</div></div>
+            <div class="kv"><div class="kv-label">Fichier</div><div id="sumFile">—</div></div>
+            <div class="kv"><div class="kv-label">Empreinte SHA-256</div><div class="mono" id="sumHash">—</div></div>
+            <div class="kv"><div class="kv-label">Compte signataire</div><div class="mono" id="sumAccount">—</div></div>
+            <div class="kv"><div class="kv-label">Réseau</div><div id="sumNetwork">Hardhat local · chaîne 31337</div></div>
+          </div>
         </div>
-        <p class="hint">PDF uniquement, 5 Mo maximum.</p>
-      </div>
-
-      <button id="submitBtn" type="submit" class="btn btn-primary" disabled>Enregistrer sur la blockchain</button>
-    </form>
+      </aside>
+    </div>
 
     <section id="result" class="result" data-state="success" aria-live="polite" hidden>
       <div class="banner">
@@ -57,7 +83,7 @@
         <svg class="icon icon-err" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
         <div>
           <h2 id="resultTitle">Enregistrée sur la blockchain</h2>
-          <p id="resultText"></p>
+          <p id="resultText">L'empreinte et le CID sont inscrits sur la blockchain.</p>
         </div>
       </div>
       <dl class="rows">
